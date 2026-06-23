@@ -1,7 +1,8 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
-import { ApiRequestError, apiFetch } from '@/lib/client'
+import { client, ApiRequestError, type MutationResponse } from '@/lib/client'
+import { toActionError, type ActionResult } from '@/lib/action'
 import {
   CreateProductSchema,
   UpdateProductSchema,
@@ -10,12 +11,6 @@ import {
   type UpdateProductInput,
 } from '@/schemas/product.schema'
 
-const PRODUCT_URL = process.env.PRODUCT_SERVICE_URL
-
-export type ActionResult<T = void> =
-  | { ok: true; data: T }
-  | { ok: false; error: string; fieldErrors?: Record<string, string[]> }
-
 export async function createProduct(
   input: CreateProductInput,
 ): Promise<ActionResult<Product>> {
@@ -23,31 +18,21 @@ export async function createProduct(
 
   if (!parsed.success) {
     return {
-      ok: false,
-      error: 'Validation failed',
-      fieldErrors: parsed.error.flatten().fieldErrors as Record<
-        string,
-        string[]
-      >,
+      error: { status: 400, message: 'Validation failed' },
+      fieldErrors: parsed.error.flatten().fieldErrors as Record<string, string[]>,
     }
   }
 
   try {
-    const product = await apiFetch<Product>(`${PRODUCT_URL}/products`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(parsed.data),
-    })
-
+    const { data, message } = await client<MutationResponse<Product>>(
+      'product',
+      '/products',
+      { method: 'POST', body: parsed.data },
+    )
     revalidatePath('/products', 'page')
-
-    return { ok: true, data: product }
+    return { data, message }
   } catch (err) {
-    if (err instanceof ApiRequestError) {
-      return { ok: false, error: err.message }
-    }
-
-    return { ok: false, error: 'Service unavailable. Try again.' }
+    return toActionError(err)
   }
 }
 
@@ -59,58 +44,36 @@ export async function updateProduct(
 
   if (!parsed.success) {
     return {
-      ok: false,
-      error: 'Validation failed',
-      fieldErrors: parsed.error.flatten().fieldErrors as Record<
-        string,
-        string[]
-      >,
+      error: { status: 400, message: 'Validation failed' },
+      fieldErrors: parsed.error.flatten().fieldErrors as Record<string, string[]>,
     }
   }
 
   try {
-    const product = await apiFetch<Product>(`${PRODUCT_URL}/products/${id}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(parsed.data),
-    })
-
+    const { data, message } = await client<MutationResponse<Product>>(
+      'product',
+      `/products/${id}`,
+      { method: 'PATCH', body: parsed.data },
+    )
     revalidatePath('/products', 'page')
-
-    return { ok: true, data: product }
+    return { data, message }
   } catch (err) {
-    if (err instanceof ApiRequestError) {
-      if (err.statusCode === 404) {
-        return {
-          ok: false,
-          error: 'Product not found — may already be deleted.',
-        }
-      }
-      return { ok: false, error: err.message }
-    }
-    return { ok: false, error: 'Service unavailable. Try again.' }
+    return toActionError(err)
   }
 }
 
 export async function deleteProduct(id: string): Promise<ActionResult> {
   try {
-    await apiFetch(`${PRODUCT_URL}/products/${id}`, { method: 'DELETE' })
-
+    const { message } = await client<MutationResponse>(
+      'product',
+      `/products/${id}`,
+      { method: 'DELETE' },
+    )
     revalidatePath('/products', 'page')
-
-    return { ok: true, data: undefined }
+    return { data: undefined, message }
   } catch (err) {
-    if (err instanceof ApiRequestError) {
-      if (err.statusCode === 404) {
-        revalidatePath('/products', 'page')
-
-        return {
-          ok: false,
-          error: 'Product not found — may already be deleted.',
-        }
-      }
-      return { ok: false, error: err.message }
-    }
-    return { ok: false, error: 'Service unavailable. Try again.' }
+    if (err instanceof ApiRequestError && err.statusCode === 404)
+      revalidatePath('/products', 'page')
+    return toActionError(err)
   }
 }

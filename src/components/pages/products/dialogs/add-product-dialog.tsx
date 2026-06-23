@@ -48,8 +48,8 @@ export function AddProductDialog() {
       const result = await createProduct(values)
 
       handleAction(result, {
-        onSuccess: () => {
-          toast.success('Product created')
+        onSuccess: (_, message) => {
+          toast.success(message)
           setOpen(false)
           form.reset()
         },

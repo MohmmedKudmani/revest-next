@@ -28,7 +28,7 @@ export function DeleteOrderDialog({ order }: { order: OrderWithProduct }) {
       const result = await deleteOrder(order.id)
 
       handleAction(result, {
-        onSuccess: () => toast.success('Order deleted'),
+        onSuccess: (_, message) => toast.success(message),
         onError: (error) => toast.error(error),
       })
       setOpen(false)

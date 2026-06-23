@@ -28,7 +28,7 @@ export function DeleteProductDialog({ product }: { product: Product }) {
       const result = await deleteProduct(product.id)
 
       handleAction(result, {
-        onSuccess: () => toast.success('Product deleted'),
+        onSuccess: (_, message) => toast.success(message),
         onError: (error) => toast.error(error),
       })
       setOpen(false)

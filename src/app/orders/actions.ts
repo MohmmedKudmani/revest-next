@@ -1,7 +1,8 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
-import { ApiRequestError, apiFetch } from '@/lib/client'
+import { client, ApiRequestError, type MutationResponse } from '@/lib/client'
+import { toActionError, type ActionResult } from '@/lib/action'
 import {
   CreateOrderSchema,
   UpdateOrderSchema,
@@ -9,9 +10,6 @@ import {
   type Order,
   type UpdateOrderInput,
 } from '@/schemas/order.schema'
-import type { ActionResult } from '@/app/products/actions'
-
-const ORDER_URL = process.env.ORDER_SERVICE_URL
 
 export async function createOrder(
   input: CreateOrderInput,
@@ -20,39 +18,22 @@ export async function createOrder(
 
   if (!parsed.success) {
     return {
-      ok: false,
-      error: 'Validation failed',
-      fieldErrors: parsed.error.flatten().fieldErrors as Record<
-        string,
-        string[]
-      >,
+      error: { status: 400, message: 'Validation failed' },
+      fieldErrors: parsed.error.flatten().fieldErrors as Record<string, string[]>,
     }
   }
 
   try {
-    const order = await apiFetch<Order>(`${ORDER_URL}/orders`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(parsed.data),
-    })
-
+    const { data, message } = await client<MutationResponse<Order>>(
+      'order',
+      '/orders',
+      { method: 'POST', body: parsed.data },
+    )
     revalidatePath('/orders', 'page')
     revalidatePath('/products', 'page')
-
-    return { ok: true, data: order }
+    return { data, message }
   } catch (err) {
-    if (err instanceof ApiRequestError) {
-      if (err.statusCode === 404) {
-        return {
-          ok: false,
-          error: 'Product no longer exists. Refresh the page and try again.',
-        }
-      }
-
-      return { ok: false, error: err.message }
-    }
-
-    return { ok: false, error: 'Service unavailable. Try again.' }
+    return toActionError(err)
   }
 }
 
@@ -63,48 +44,36 @@ export async function updateOrderStatus(
   const parsed = UpdateOrderSchema.safeParse(input)
 
   if (!parsed.success) {
-    return { ok: false, error: 'Invalid status' }
+    return { error: { status: 400, message: 'Invalid status' } }
   }
 
   try {
-    const order = await apiFetch<Order>(`${ORDER_URL}/orders/${id}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(parsed.data),
-    })
-
+    const { data, message } = await client<MutationResponse<Order>>(
+      'order',
+      `/orders/${id}`,
+      { method: 'PATCH', body: parsed.data },
+    )
     revalidatePath('/orders', 'page')
     revalidatePath('/products', 'page')
-
-    return { ok: true, data: order }
+    return { data, message }
   } catch (err) {
-    if (err instanceof ApiRequestError) {
-      return { ok: false, error: err.message }
-    }
-
-    return { ok: false, error: 'Service unavailable. Try again.' }
+    return toActionError(err)
   }
 }
 
 export async function deleteOrder(id: string): Promise<ActionResult> {
   try {
-    await apiFetch(`${ORDER_URL}/orders/${id}`, { method: 'DELETE' })
-
+    const { message } = await client<MutationResponse>(
+      'order',
+      `/orders/${id}`,
+      { method: 'DELETE' },
+    )
     revalidatePath('/orders', 'page')
     revalidatePath('/products', 'page')
-
-    return { ok: true, data: undefined }
+    return { data: undefined, message }
   } catch (err) {
-    if (err instanceof ApiRequestError) {
-      if (err.statusCode === 404) {
-        revalidatePath('/orders', 'page')
-
-        return { ok: false, error: 'Order not found — may already be deleted.' }
-      }
-
-      return { ok: false, error: err.message }
-    }
-
-    return { ok: false, error: 'Service unavailable. Try again.' }
+    if (err instanceof ApiRequestError && err.statusCode === 404)
+      revalidatePath('/orders', 'page')
+    return toActionError(err)
   }
 }

@@ -100,8 +100,8 @@ export function AddOrderDialog({ products }: AddOrderDialogProps) {
       const result = await createOrder(values)
 
       handleAction(result, {
-        onSuccess: () => {
-          toast.success('Order placed')
+        onSuccess: (_, message) => {
+          toast.success(message)
           setOpen(false)
           form.reset()
         },

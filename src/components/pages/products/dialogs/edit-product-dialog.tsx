@@ -58,8 +58,8 @@ export function EditProductDialog({
       const result = await updateProduct(product.id, values)
 
       handleAction(result, {
-        onSuccess: () => {
-          toast.success('Product updated')
+        onSuccess: (_, message) => {
+          toast.success(message)
           setOpen(false)
         },
         onError: (error) => toast.error(error),

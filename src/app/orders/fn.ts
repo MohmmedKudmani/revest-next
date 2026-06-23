@@ -1,20 +1,17 @@
-import { apiFetch, buildSearchParams } from '@/lib/client'
+import { client } from '@/lib/client'
+import { buildSearchParams } from '@/lib/utils'
 import type {
   OrderWithProduct,
   OrderQueryInput,
   PaginatedOrders,
 } from '@/schemas/order.schema'
 
-const ORDER_URL = process.env.ORDER_SERVICE_URL!
-
 export async function getOrders(
   params: Partial<OrderQueryInput> = {},
 ): Promise<PaginatedOrders> {
-  return apiFetch(
-    `${ORDER_URL}/orders?${buildSearchParams(params as Record<string, string | number | boolean | undefined>)}`,
-  )
+  return client('order', `/orders?${buildSearchParams(params)}`)
 }
 
 export async function getOrder(id: string): Promise<OrderWithProduct> {
-  return apiFetch(`${ORDER_URL}/orders/${id}`)
+  return client('order', `/orders/${id}`)
 }

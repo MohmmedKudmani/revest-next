@@ -60,6 +60,7 @@ export function OrderStatusSelect({
       })
 
       handleAction(result, {
+        onSuccess: (_, message) => toast.success(message),
         onError: (error) => {
           setOptimistic(prev)
           toast.error(error)
