@@ -167,7 +167,10 @@ export function AddOrderDialog({ products }: AddOrderDialogProps) {
                         </Button>
                       </FormControl>
                     </PopoverTrigger>
-                    <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
+                    <PopoverContent
+                      className="w-[--radix-popover-trigger-width] p-0"
+                      onWheel={(e) => e.stopPropagation()}
+                    >
                       <Command>
                         <CommandInput placeholder="Search products…" />
                         <CommandList>
@@ -188,8 +191,8 @@ export function AddOrderDialog({ products }: AddOrderDialogProps) {
                                   }}
                                   disabled={outOfStock}
                                   className={cn(
-                                    'flex items-center justify-between',
-                                    outOfStock && 'opacity-40',
+                                    'flex cursor-pointer items-center justify-between',
+                                    outOfStock && 'cursor-not-allowed opacity-40',
                                   )}
                                 >
                                   <span className="flex items-center gap-2">
