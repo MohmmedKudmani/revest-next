@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/select'
 import { updateOrderStatus } from '@/app/orders/actions'
 import type { Order } from '@/schemas/order.schema'
+import { handleAction } from '@/lib/handle-action'
 
 const STATUS_OPTIONS = ['PENDING', 'CONFIRMED', 'CANCELLED'] as const
 
@@ -58,10 +59,12 @@ export function OrderStatusSelect({
         status: value as Order['status'],
       })
 
-      if (!result.ok) {
-        setOptimistic(prev)
-        toast.error(result.error ?? 'Failed to update status. Try again.')
-      }
+      handleAction(result, {
+        onError: (error) => {
+          setOptimistic(prev)
+          toast.error(error)
+        },
+      })
     })
   }
 

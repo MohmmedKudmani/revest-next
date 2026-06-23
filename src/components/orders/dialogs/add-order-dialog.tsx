@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useTransition, useMemo } from 'react'
-import { useForm, useWatch } from 'react-hook-form'
+import { useForm, useFormState, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { toast } from 'sonner'
 import {
@@ -67,6 +67,9 @@ export function AddOrderDialog({ products }: AddOrderDialogProps) {
     control: form.control,
     name: 'productId',
   })
+
+  const { errors } = useFormState({ control: form.control })
+
   const quantity = useWatch({
     control: form.control,
     name: 'quantity',
@@ -138,10 +141,17 @@ export function AddOrderDialog({ products }: AddOrderDialogProps) {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Product *</FormLabel>
-                  <FormControl>
-                    <Popover open={comboOpen} onOpenChange={setComboOpen}>
-                      <PopoverTrigger asChild>
+                  <Popover
+                    open={comboOpen}
+                    onOpenChange={(nextOpen) => {
+                      setComboOpen(nextOpen)
+                      if (!nextOpen) field.onBlur()
+                    }}
+                  >
+                    <PopoverTrigger asChild>
+                      <FormControl>
                         <Button
+                          type="button"
                           variant="outline"
                           role="combobox"
                           aria-expanded={comboOpen}
@@ -155,62 +165,63 @@ export function AddOrderDialog({ products }: AddOrderDialogProps) {
                             className="ml-2 shrink-0 opacity-50"
                           />
                         </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
-                        <Command>
-                          <CommandInput placeholder="Search products…" />
-                          <CommandList>
-                            <CommandEmpty>No products found.</CommandEmpty>
-                            <CommandGroup>
-                              {products.map((product) => {
-                                const outOfStock = product.stock === 0
-                                return (
-                                  <CommandItem
-                                    key={product.id}
-                                    value={`${product.name} ${product.id}`}
-                                    onSelect={() => {
-                                      if (!outOfStock) {
-                                        field.onChange(product.id)
-                                        setComboOpen(false)
-                                      }
-                                    }}
-                                    disabled={outOfStock}
-                                    className={cn(
-                                      'flex items-center justify-between',
-                                      outOfStock && 'opacity-40',
-                                    )}
-                                  >
-                                    <span className="flex items-center gap-2">
-                                      <CheckIcon
-                                        size={14}
-                                        className={cn(
-                                          'shrink-0',
-                                          field.value === product.id
-                                            ? 'opacity-100'
-                                            : 'opacity-0',
-                                        )}
-                                      />
-                                      <span>{product.name}</span>
-                                    </span>
-                                    <span className="text-muted-foreground ml-2 text-xs">
-                                      {new Intl.NumberFormat('en-US', {
-                                        style: 'currency',
-                                        currency: 'USD',
-                                      }).format(product.price)}
-                                      {outOfStock
-                                        ? ' · out of stock'
-                                        : ` · ${product.stock} in stock`}
-                                    </span>
-                                  </CommandItem>
-                                )
-                              })}
-                            </CommandGroup>
-                          </CommandList>
-                        </Command>
-                      </PopoverContent>
-                    </Popover>
-                  </FormControl>
-                  <FormMessage />
+                      </FormControl>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
+                      <Command>
+                        <CommandInput placeholder="Search products…" />
+                        <CommandList>
+                          <CommandEmpty>No products found.</CommandEmpty>
+                          <CommandGroup>
+                            {products.map((product) => {
+                              const outOfStock = product.stock === 0
+                              return (
+                                <CommandItem
+                                  key={product.id}
+                                  value={`${product.name} ${product.id}`}
+                                  onSelect={() => {
+                                    if (!outOfStock) {
+                                      field.onChange(product.id)
+                                      field.onBlur()
+                                      setComboOpen(false)
+                                    }
+                                  }}
+                                  disabled={outOfStock}
+                                  className={cn(
+                                    'flex items-center justify-between',
+                                    outOfStock && 'opacity-40',
+                                  )}
+                                >
+                                  <span className="flex items-center gap-2">
+                                    <CheckIcon
+                                      size={14}
+                                      className={cn(
+                                        'shrink-0',
+                                        field.value === product.id
+                                          ? 'opacity-100'
+                                          : 'opacity-0',
+                                      )}
+                                    />
+                                    <span>{product.name}</span>
+                                  </span>
+                                  <span className="text-muted-foreground ml-2 text-xs">
+                                    {new Intl.NumberFormat('en-US', {
+                                      style: 'currency',
+                                      currency: 'USD',
+                                    }).format(product.price)}
+                                    {outOfStock
+                                      ? ' · out of stock'
+                                      : ` · ${product.stock} in stock`}
+                                  </span>
+                                </CommandItem>
+                              )
+                            })}
+                          </CommandGroup>
+                        </CommandList>
+                      </Command>
+                    </PopoverContent>
+                  </Popover>
+                  <FormMessage>{errors.productId?.message}</FormMessage>
                 </FormItem>
               )}
             />
@@ -218,7 +229,7 @@ export function AddOrderDialog({ products }: AddOrderDialogProps) {
             <FormField
               control={form.control}
               name="quantity"
-              render={({ field }) => (
+              render={({ field, fieldState }) => (
                 <FormItem>
                   <FormLabel>Quantity *</FormLabel>
                   <FormControl>
@@ -235,7 +246,7 @@ export function AddOrderDialog({ products }: AddOrderDialogProps) {
                       {selectedProduct.stock} available
                     </p>
                   )}
-                  <FormMessage />
+                  <FormMessage>{fieldState.error?.message}</FormMessage>
                 </FormItem>
               )}
             />

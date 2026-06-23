@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from 'react'
 import { toast } from 'sonner'
-import { Trash, CircleNotch } from '@phosphor-icons/react'
+import { TrashIcon, CircleNotchIcon } from '@phosphor-icons/react'
 import { Button } from '@/components/ui/button'
 import {
   AlertDialog,
@@ -17,6 +17,7 @@ import {
 } from '@/components/ui/alert-dialog'
 import { deleteOrder } from '@/app/orders/actions'
 import type { OrderWithProduct } from '@/schemas/order.schema'
+import { handleAction } from '@/lib/handle-action'
 
 export function DeleteOrderButton({ order }: { order: OrderWithProduct }) {
   const [open, setOpen] = useState(false)
@@ -25,13 +26,12 @@ export function DeleteOrderButton({ order }: { order: OrderWithProduct }) {
   function handleDelete() {
     startTransition(async () => {
       const result = await deleteOrder(order.id)
-      if (result.ok) {
-        toast.success('Order deleted')
-        setOpen(false)
-      } else {
-        toast.error(result.error)
-        setOpen(false)
-      }
+
+      handleAction(result, {
+        onSuccess: () => toast.success('Order deleted'),
+        onError: (error) => toast.error(error),
+      })
+      setOpen(false)
     })
   }
 
@@ -43,7 +43,7 @@ export function DeleteOrderButton({ order }: { order: OrderWithProduct }) {
           size="icon"
           className="text-destructive hover:text-destructive size-8"
         >
-          <Trash size={15} />
+          <TrashIcon size={15} />
         </Button>
       </AlertDialogTrigger>
       <AlertDialogContent>
@@ -67,7 +67,9 @@ export function DeleteOrderButton({ order }: { order: OrderWithProduct }) {
             }}
             disabled={isPending}
           >
-            {isPending && <CircleNotch size={14} className="animate-spin" />}
+            {isPending && (
+              <CircleNotchIcon size={14} className="animate-spin" />
+            )}
             {isPending ? 'Deleting…' : 'Delete'}
           </AlertDialogAction>
         </AlertDialogFooter>

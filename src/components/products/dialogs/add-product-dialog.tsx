@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { useForm } from 'react-hook-form'
+import { useForm, useFormState } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { toast } from 'sonner'
 import { PlusIcon, CircleNotchIcon } from '@phosphor-icons/react'
@@ -37,6 +37,10 @@ export function AddProductDialog() {
   const form = useForm<CreateProductInput>({
     resolver: zodResolver(CreateProductSchema),
     defaultValues: { name: '', description: '', price: 0, stock: 0 },
+  })
+
+  const { errors } = useFormState({
+    control: form.control,
   })
 
   function onSubmit(values: CreateProductInput) {
@@ -89,7 +93,7 @@ export function AddProductDialog() {
                   <FormControl>
                     <Input placeholder="Wireless Mouse" {...field} />
                   </FormControl>
-                  <FormMessage />
+                  <FormMessage>{errors.name?.message}</FormMessage>
                 </FormItem>
               )}
             />
