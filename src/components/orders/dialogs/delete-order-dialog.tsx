@@ -17,6 +17,7 @@ import {
 } from '@/components/ui/alert-dialog'
 import { deleteOrder } from '@/app/orders/actions'
 import type { OrderWithProduct } from '@/schemas/order.schema'
+import { handleAction } from '@/lib/handle-action'
 
 export function DeleteOrderDialog({ order }: { order: OrderWithProduct }) {
   const [open, setOpen] = useState(false)
@@ -25,13 +26,12 @@ export function DeleteOrderDialog({ order }: { order: OrderWithProduct }) {
   function handleDelete() {
     startTransition(async () => {
       const result = await deleteOrder(order.id)
-      if (result.ok) {
-        toast.success('Order deleted')
-        setOpen(false)
-      } else {
-        toast.error(result.error)
-        setOpen(false)
-      }
+
+      handleAction(result, {
+        onSuccess: () => toast.success('Order deleted'),
+        onError: (error) => toast.error(error),
+      })
+      setOpen(false)
     })
   }
 

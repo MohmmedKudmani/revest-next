@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useTransition, useMemo } from 'react'
-import { useForm } from 'react-hook-form'
+import { useForm, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { toast } from 'sonner'
 import {
@@ -47,6 +47,7 @@ import {
 } from '@/schemas/order.schema'
 import type { Product } from '@/schemas/product.schema'
 import { createOrder } from '@/app/orders/actions'
+import { handleAction } from '@/lib/handle-action'
 
 interface AddOrderDialogProps {
   products: Product[]
@@ -55,7 +56,6 @@ interface AddOrderDialogProps {
 export function AddOrderDialog({ products }: AddOrderDialogProps) {
   const [open, setOpen] = useState(false)
   const [comboOpen, setComboOpen] = useState(false)
-  const [serverError, setServerError] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
 
   const form = useForm<CreateOrderInput>({
@@ -63,8 +63,14 @@ export function AddOrderDialog({ products }: AddOrderDialogProps) {
     defaultValues: { productId: '', quantity: 1 },
   })
 
-  const selectedProductId = form.watch('productId')
-  const quantity = form.watch('quantity')
+  const selectedProductId = useWatch({
+    control: form.control,
+    name: 'productId',
+  })
+  const quantity = useWatch({
+    control: form.control,
+    name: 'quantity',
+  })
 
   const selectedProduct = useMemo(
     () => products.find((p) => p.id === selectedProductId) ?? null,
@@ -80,29 +86,27 @@ export function AddOrderDialog({ products }: AddOrderDialogProps) {
       : null
 
   function onSubmit(values: CreateOrderInput) {
-    setServerError(null)
     if (selectedProduct && values.quantity > selectedProduct.stock) {
       form.setError('quantity', {
         message: `Only ${selectedProduct.stock} available`,
       })
       return
     }
+
     startTransition(async () => {
       const result = await createOrder(values)
-      if (result.ok) {
-        toast.success('Order placed')
-        setOpen(false)
-        form.reset()
-      } else {
-        if (result.fieldErrors) {
-          for (const [field, messages] of Object.entries(result.fieldErrors)) {
-            form.setError(field as keyof CreateOrderInput, {
-              message: messages[0],
-            })
-          }
-        }
-        setServerError(result.error)
-      }
+
+      handleAction(result, {
+        onSuccess: () => {
+          toast.success('Order placed')
+          setOpen(false)
+          form.reset()
+        },
+        onError: (error) => toast.error(error),
+        onFieldError: (field, message) => {
+          form.setError(field as keyof CreateOrderInput, { message })
+        },
+      })
     })
   }
 
@@ -110,7 +114,6 @@ export function AddOrderDialog({ products }: AddOrderDialogProps) {
     setOpen(o)
     if (!o) {
       form.reset()
-      setServerError(null)
     }
   }
 
@@ -126,12 +129,6 @@ export function AddOrderDialog({ products }: AddOrderDialogProps) {
         <DialogHeader>
           <DialogTitle>Add Order</DialogTitle>
         </DialogHeader>
-
-        {serverError && (
-          <div className="bg-destructive/10 text-destructive rounded-md px-3 py-2 text-sm">
-            {serverError}
-          </div>
-        )}
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -228,7 +225,7 @@ export function AddOrderDialog({ products }: AddOrderDialogProps) {
                     <Input
                       type="number"
                       min={1}
-                      max={selectedProduct?.stock ?? undefined}
+                      // max={selectedProduct?.stock ?? undefined}
                       placeholder="1"
                       {...field}
                     />

@@ -17,6 +17,7 @@ import {
 } from '@/components/ui/alert-dialog'
 import type { Product } from '@/schemas/product.schema'
 import { deleteProduct } from '@/app/products/actions'
+import { handleAction } from '@/lib/handle-action'
 
 export function DeleteProductDialog({ product }: { product: Product }) {
   const [open, setOpen] = useState(false)
@@ -25,13 +26,12 @@ export function DeleteProductDialog({ product }: { product: Product }) {
   function handleDelete() {
     startTransition(async () => {
       const result = await deleteProduct(product.id)
-      if (result.ok) {
-        toast.success('Product deleted')
-        setOpen(false)
-      } else {
-        toast.error(result.error)
-        setOpen(false)
-      }
+
+      handleAction(result, {
+        onSuccess: () => toast.success('Product deleted'),
+        onError: (error) => toast.error(error),
+      })
+      setOpen(false)
     })
   }
 

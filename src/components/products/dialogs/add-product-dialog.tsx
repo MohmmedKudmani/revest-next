@@ -28,10 +28,10 @@ import {
   type CreateProductInput,
 } from '@/schemas/product.schema'
 import { createProduct } from '@/app/products/actions'
+import { handleAction } from '@/lib/handle-action'
 
 export function AddProductDialog() {
   const [open, setOpen] = useState(false)
-  const [serverError, setServerError] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
 
   const form = useForm<CreateProductInput>({
@@ -40,23 +40,20 @@ export function AddProductDialog() {
   })
 
   function onSubmit(values: CreateProductInput) {
-    setServerError(null)
     startTransition(async () => {
       const result = await createProduct(values)
-      if (result.ok) {
-        toast.success('Product created')
-        setOpen(false)
-        form.reset()
-      } else {
-        if (result.fieldErrors) {
-          for (const [field, messages] of Object.entries(result.fieldErrors)) {
-            form.setError(field as keyof CreateProductInput, {
-              message: messages[0],
-            })
-          }
-        }
-        setServerError(result.error)
-      }
+
+      handleAction(result, {
+        onSuccess: () => {
+          toast.success('Product created')
+          setOpen(false)
+          form.reset()
+        },
+        onError: (error) => toast.error(error),
+        onFieldError: (field, message) => {
+          form.setError(field as keyof CreateProductInput, { message })
+        },
+      })
     })
   }
 
@@ -67,7 +64,6 @@ export function AddProductDialog() {
         setOpen(o)
         if (!o) {
           form.reset()
-          setServerError(null)
         }
       }}
     >
@@ -81,12 +77,6 @@ export function AddProductDialog() {
         <DialogHeader>
           <DialogTitle>Add Product</DialogTitle>
         </DialogHeader>
-
-        {serverError && (
-          <div className="bg-destructive/10 text-destructive rounded-md px-3 py-2 text-sm">
-            {serverError}
-          </div>
-        )}
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
