@@ -1,7 +1,7 @@
 import { normalizeSearchParams } from '@/lib/utils'
 import { getProducts } from './fn'
 import { ProductQuerySchema } from '@/schemas/product.schema'
-import { ProductsView } from '@/components/products'
+import { ProductsView } from '@/components/pages/products'
 
 interface PageProps {
   searchParams: Promise<Record<string, string | string[] | undefined>>

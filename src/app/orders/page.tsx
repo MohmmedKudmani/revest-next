@@ -2,7 +2,7 @@ import { normalizeSearchParams } from '@/lib/utils'
 import { getOrders } from './fn'
 import { getAllProductsFlat } from '@/app/products/fn'
 import { OrderQuerySchema } from '@/schemas/order.schema'
-import { OrdersView } from '@/components/orders'
+import { OrdersView } from '@/components/pages/orders'
 
 interface PageProps {
   searchParams: Promise<Record<string, string | string[] | undefined>>
