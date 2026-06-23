@@ -28,7 +28,7 @@ export default function RootLayout({
       className={cn('h-full antialiased', inter.variable, figtree.variable)}
       suppressHydrationWarning
     >
-      <body className="flex min-h-full">
+      <body className="flex min-h-full" suppressHydrationWarning>
         <TooltipProvider delayDuration={300}>
           <SidebarProvider>
             <AppSidebar />
