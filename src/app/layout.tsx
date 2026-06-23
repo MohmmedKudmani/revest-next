@@ -26,6 +26,7 @@ export default function RootLayout({
     <html
       lang="en"
       className={cn('h-full antialiased', inter.variable, figtree.variable)}
+      suppressHydrationWarning
     >
       <body className="flex min-h-full">
         <TooltipProvider delayDuration={300}>
