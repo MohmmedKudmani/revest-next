@@ -10,23 +10,23 @@ One page (`/`) — shows all products and all orders side by side or together. N
 
 ## What It Connects To
 
-| Service | URL | Used for |
-|---|---|---|
-| Product Service | `http://localhost:3001` | GET all products |
-| Order Service | `http://localhost:3002` | GET all orders (enriched with product details) |
+| Service         | URL                     | Used for                                       |
+| --------------- | ----------------------- | ---------------------------------------------- |
+| Product Service | `http://localhost:3001` | GET all products                               |
+| Order Service   | `http://localhost:3002` | GET all orders (enriched with product details) |
 
 ## Tech Stack
 
-| Layer | Technology |
-|---|---|
-| Framework | Next.js 14+ App Router |
-| Language | TypeScript |
-| Styling | Tailwind CSS |
-| UI Components | Shadcn/ui |
-| Validation | Zod |
+| Layer         | Technology                                     |
+| ------------- | ---------------------------------------------- |
+| Framework     | Next.js 14+ App Router                         |
+| Language      | TypeScript                                     |
+| Styling       | Tailwind CSS                                   |
+| UI Components | Shadcn/ui                                      |
+| Validation    | Zod                                            |
 | Data fetching | Server Components + `fetch` with Next.js cache |
-| Client state | `useState` only — no state library |
-| Auth | None |
+| Client state  | `useState` only — no state library             |
+| Auth          | None                                           |
 
 ## Out of Scope (for now)
 

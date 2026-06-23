@@ -75,10 +75,10 @@ All fetch calls live in `lib/api.ts`. Never inline fetch in a page or component.
 
 ## Naming Conventions
 
-| Thing | Convention | Example |
-|---|---|---|
-| API helper | `getFeature` | `getProducts()` |
-| Schema | `FeatureSchema` | `ProductSchema` |
-| Type | `PascalCase` | `Product`, `Order` |
-| Component | `kebab-case.tsx` | `products-view.tsx` |
-| Cache tag | lowercase string | `'products'`, `'orders'` |
+| Thing      | Convention       | Example                  |
+| ---------- | ---------------- | ------------------------ |
+| API helper | `getFeature`     | `getProducts()`          |
+| Schema     | `FeatureSchema`  | `ProductSchema`          |
+| Type       | `PascalCase`     | `Product`, `Order`       |
+| Component  | `kebab-case.tsx` | `products-view.tsx`      |
+| Cache tag  | lowercase string | `'products'`, `'orders'` |

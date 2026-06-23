@@ -6,8 +6,7 @@
 src/
 ├── app/
 │   ├── layout.tsx          ← root layout
-│   ├── page.tsx            ← single page, Server Component, fetches + renders
-│   └── loading.tsx         ← loading state while page fetches
+│   └── page.tsx            ← single page, Server Component, fetches + renders
 ├── components/
 │   ├── products-view.tsx   ← Client Component, renders products data
 │   └── orders-view.tsx     ← Client Component, renders orders data
