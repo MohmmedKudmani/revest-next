@@ -16,4 +16,3 @@ Re-read affected files when modified. Re-read all five if context may have been 
 ## Rule Ownership
 
 All project rules live in the relevant `context/` file. Do not add rules here.
-
