@@ -19,7 +19,10 @@ export async function createOrder(
   if (!parsed.success) {
     return {
       error: { status: 400, message: 'Validation failed' },
-      fieldErrors: parsed.error.flatten().fieldErrors as Record<string, string[]>,
+      fieldErrors: parsed.error.flatten().fieldErrors as Record<
+        string,
+        string[]
+      >,
     }
   }
 
@@ -29,8 +32,10 @@ export async function createOrder(
       '/orders',
       { method: 'POST', body: parsed.data },
     )
+
     revalidatePath('/orders', 'page')
     revalidatePath('/products', 'page')
+
     return { data, message }
   } catch (err) {
     return toActionError(err)
@@ -53,8 +58,10 @@ export async function updateOrderStatus(
       `/orders/${id}`,
       { method: 'PATCH', body: parsed.data },
     )
+
     revalidatePath('/orders', 'page')
     revalidatePath('/products', 'page')
+
     return { data, message }
   } catch (err) {
     return toActionError(err)
@@ -68,8 +75,10 @@ export async function deleteOrder(id: string): Promise<ActionResult> {
       `/orders/${id}`,
       { method: 'DELETE' },
     )
+
     revalidatePath('/orders', 'page')
     revalidatePath('/products', 'page')
+
     return { data: undefined, message }
   } catch (err) {
     if (err instanceof ApiRequestError && err.statusCode === 404)

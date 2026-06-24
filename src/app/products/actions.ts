@@ -19,7 +19,10 @@ export async function createProduct(
   if (!parsed.success) {
     return {
       error: { status: 400, message: 'Validation failed' },
-      fieldErrors: parsed.error.flatten().fieldErrors as Record<string, string[]>,
+      fieldErrors: parsed.error.flatten().fieldErrors as Record<
+        string,
+        string[]
+      >,
     }
   }
 
@@ -29,7 +32,9 @@ export async function createProduct(
       '/products',
       { method: 'POST', body: parsed.data },
     )
+
     revalidatePath('/products', 'page')
+
     return { data, message }
   } catch (err) {
     return toActionError(err)
@@ -45,7 +50,10 @@ export async function updateProduct(
   if (!parsed.success) {
     return {
       error: { status: 400, message: 'Validation failed' },
-      fieldErrors: parsed.error.flatten().fieldErrors as Record<string, string[]>,
+      fieldErrors: parsed.error.flatten().fieldErrors as Record<
+        string,
+        string[]
+      >,
     }
   }
 
@@ -55,7 +63,9 @@ export async function updateProduct(
       `/products/${id}`,
       { method: 'PATCH', body: parsed.data },
     )
+
     revalidatePath('/products', 'page')
+
     return { data, message }
   } catch (err) {
     return toActionError(err)
@@ -69,11 +79,15 @@ export async function deleteProduct(id: string): Promise<ActionResult> {
       `/products/${id}`,
       { method: 'DELETE' },
     )
+
     revalidatePath('/products', 'page')
+
     return { data: undefined, message }
   } catch (err) {
-    if (err instanceof ApiRequestError && err.statusCode === 404)
+    if (err instanceof ApiRequestError && err.statusCode === 404) {
       revalidatePath('/products', 'page')
+    }
+
     return toActionError(err)
   }
 }
